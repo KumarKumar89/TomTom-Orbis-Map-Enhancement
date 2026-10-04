@@ -1,0 +1,17 @@
+[package]
+name = "orbis-client"
+description = "TomTom Orbis API client (Map Display tiles + search surface) with key injection at runtime only"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+geo-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+reqwest.workspace = true
+tokio.workspace = true
+log.workspace = true

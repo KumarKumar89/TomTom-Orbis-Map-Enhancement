@@ -1,0 +1,15 @@
+[package]
+name = "geo-geometry"
+description = "Deterministic geometry engine: projections, distances, bearings, polyline ops, similarity metrics"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+geo-core.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true

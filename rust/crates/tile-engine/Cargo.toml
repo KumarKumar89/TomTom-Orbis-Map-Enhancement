@@ -1,0 +1,13 @@
+[package]
+name = "tile-engine"
+description = "XYZ/MVT tile math and vector-tile feature clipping for the Orbis 3857 tile grid"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+geo-core.workspace = true
+geo-geometry.workspace = true
+thiserror.workspace = true

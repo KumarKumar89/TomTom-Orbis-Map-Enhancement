@@ -1,0 +1,13 @@
+[package]
+name = "routing-graph"
+description = "Directed road graph with Dijkstra/A* route continuity checks"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+geo-core.workspace = true
+topology-engine.workspace = true
+thiserror.workspace = true

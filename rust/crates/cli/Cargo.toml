@@ -1,0 +1,24 @@
+[package]
+name = "orbis-cli"
+description = "Unified command-line entry point for the geospatial engine (validate, conflate, tiles, ingest)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "orbis-cli"
+path = "src/main.rs"
+
+[dependencies]
+geo-core.workspace = true
+geo-geometry.workspace = true
+topology-engine.workspace = true
+conflation-engine.workspace = true
+validation-engine.workspace = true
+tile-engine.workspace = true
+data-format.workspace = true
+clap.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true

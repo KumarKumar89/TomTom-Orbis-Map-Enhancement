@@ -1,0 +1,16 @@
+[package]
+name = "map-matching"
+description = "Route continuity + trajectory-to-network map matching (Dijkstra-based, HMM-lite)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+geo-core.workspace = true
+geo-geometry.workspace = true
+spatial-index.workspace = true
+routing-graph.workspace = true
+topology-engine.workspace = true
+thiserror.workspace = true

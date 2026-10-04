@@ -1,0 +1,61 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/geo-core",
+    "crates/geo-geometry",
+    "crates/spatial-index",
+    "crates/topology-engine",
+    "crates/routing-graph",
+    "crates/map-matching",
+    "crates/conflation-engine",
+    "crates/tile-engine",
+    "crates/validation-engine",
+    "crates/orbis-client",
+    "crates/data-format",
+    "crates/py-bridge",
+    "crates/cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "MIT"
+repository = "https://github.com/KumarKumar89/TomTom-Orbis-Map-Enhancement"
+authors = ["TomTom Orbis Map Enhancement contributors"]
+
+[workspace.dependencies]
+# Internal crates
+geo-core = { path = "crates/geo-core" }
+geo-geometry = { path = "crates/geo-geometry" }
+spatial-index = { path = "crates/spatial-index" }
+topology-engine = { path = "crates/topology-engine" }
+routing-graph = { path = "crates/routing-graph" }
+map-matching = { path = "crates/map-matching" }
+conflation-engine = { path = "crates/conflation-engine" }
+tile-engine = { path = "crates/tile-engine" }
+validation-engine = { path = "crates/validation-engine" }
+orbis-client = { path = "crates/orbis-client" }
+data-format = { path = "crates/data-format" }
+
+# External
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+anyhow = "1"
+rayon = "1.10"
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.11", default-features = false, features = ["rustls-tls", "json"] }
+log = "0.4"
+env_logger = "0.11"
+clap = { version = "4", features = ["derive"] }
+criterion = { version = "0.5", features = ["html_reports"] }
+proptest = "1"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+
+[profile.bench]
+debug = true

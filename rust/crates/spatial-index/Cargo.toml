@@ -1,0 +1,18 @@
+[package]
+name = "spatial-index"
+description = "STR-packed R-tree spatial index: bbox queries and nearest-neighbour search (avoids O(N^2) matching)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+geo-core.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+
+[[bench]]
+name = "rtree_bench"
+harness = false

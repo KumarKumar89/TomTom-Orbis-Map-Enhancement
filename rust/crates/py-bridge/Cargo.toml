@@ -1,0 +1,31 @@
+[package]
+name = "py-bridge"
+description = "PyO3/maturin extension module exposing the Rust geospatial engine to Python (feature-gated)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+name = "orbis_engine"
+# cdylib is added by maturin when building the wheel; rlib keeps workspace
+# builds and unit tests working without a Python interpreter present.
+crate-type = ["rlib", "cdylib"]
+
+[dependencies]
+geo-core.workspace = true
+geo-geometry.workspace = true
+spatial-index.workspace = true
+topology-engine.workspace = true
+conflation-engine.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+# PyO3 is enabled only when building the wheel via maturin:
+#   cargo build -p py-bridge --features python
+pyo3 = { version = "0.22", optional = true }
+
+[features]
+default = []
+python = ["dep:pyo3"]

@@ -7,7 +7,6 @@
 
 use geo_core::{FeatureId, GeoResult};
 use std::collections::{BinaryHeap, HashMap, HashSet};
-use std::hash::{Hash, Hasher};
 use topology_engine::RoadNetwork;
 
 /// Directed edge weight kinds used for cost models.
@@ -60,7 +59,7 @@ impl RoutingGraph {
     }
 
     /// Dijkstra from `start` connector to `goal` connector. Returns
-    /// (total_cost, ordered segment ids). Deterministic tie-breaking on segment id.
+    /// (total_cost, ordered segment ids). Deterministic tie-breaking on node id.
     pub fn shortest_path(&self, start: &FeatureId, goal: &FeatureId) -> GeoResult<Option<(f64, Vec<FeatureId>)>> {
         if start == goal {
             return Ok(Some((0.0, vec![])));
@@ -118,28 +117,27 @@ impl RoutingGraph {
         Ok(None)
     }
 
-    /// Set of connectors reachable from `start` (connectivity diagnostics).
-    pub fn reachable_from<'s>(&'s self, start: &FeatureId) -> HashSet<&'s FeatureId> {
-        let mut seen: HashSet<&'s FeatureId> = HashSet::new();
-        let mut stack: Vec<&'s FeatureId> = vec![start];
+    /// Set of connector ids reachable from `start` (connectivity diagnostics).
+    ///
+    /// Returns owned ids so callers are not entangled with the graph borrow
+    /// lifetime (and so `HashMap` iteration order never leaks into results).
+    pub fn reachable_from(&self, start: &FeatureId) -> HashSet<FeatureId> {
+        let mut seen: HashSet<FeatureId> = HashSet::new();
+        let mut stack: Vec<FeatureId> = vec![start.clone()];
         while let Some(n) = stack.pop() {
-            if !seen.insert(n) {
+            if !seen.insert(n.clone()) {
                 continue;
             }
-            if let Some(edges) = self.adj.get(n) {
+            if let Some(edges) = self.adj.get(&n) {
                 for e in edges {
-                    stack.push(&e.to);
+                    if !seen.contains(&e.to) {
+                        stack.push(e.to.clone());
+                    }
                 }
             }
         }
         seen
     }
-}
-
-// Silence unused-import warnings if Hash/Hasher become unnecessary later.
-#[allow(dead_code)]
-fn _hash_marker<H: Hasher>(h: H, i: &impl Hash) {
-    let _ = (h.finish(), i);
 }
 
 #[cfg(test)]
@@ -200,7 +198,22 @@ mod tests {
         let (_, path) = g
             .shortest_path(&FeatureId::new("a"), &FeatureId::new("z"))
             .unwrap()
-            .unwrap();
-        assert!(path.iter().any(|p| p.as_str().starts_with('m')));
+            .expect("path exists");
+        assert_eq!(path, vec![FeatureId::new("m1"), FeatureId::new("m2")]);
+    }
+
+    #[test]
+    fn reachable_set_is_owned_and_correct() {
+        let mut net = RoadNetwork::new();
+        net.add_segment(seg("s1", "c1", "c2", true, "primary"));
+        net.add_segment(seg("s2", "c2", "c3", false, "primary"));
+        let g = RoutingGraph::from_network(&net, CostModel::Distance);
+        let reach = g.reachable_from(&FeatureId::new("c1"));
+        assert!(reach.contains(&FeatureId::new("c1")));
+        assert!(reach.contains(&FeatureId::new("c2")));
+        assert!(reach.contains(&FeatureId::new("c3")));
+        // Reverse direction must NOT be reachable (one-way s1).
+        let back = g.reachable_from(&FeatureId::new("c3"));
+        assert!(!back.contains(&FeatureId::new("c1")));
     }
 }

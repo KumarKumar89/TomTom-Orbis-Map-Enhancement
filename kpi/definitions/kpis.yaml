@@ -1,0 +1,175 @@
+# =============================================================================
+# TOMTOM ORBIS MAP ENHANCEMENT — KPI MASTER DEFINITIONS
+# =============================================================================
+# 92 domain-specific KPIs across 20 categories, plus the infrastructure /
+# performance KPI baseline already enforced by CI (Criterion + pytest-benchmark
+# budgets, quality-gate exit codes) integrated as `infra_performance`.
+#
+# Every KPI is reviewed as: Ideal Target vs Actual, with threshold status.
+#
+# direction : higher | lower   (whether higher actual values are better)
+# ideal     : aspirational target ("Ideal Target" column of every review)
+# pass      : actual meeting this => PASS (green)
+# warn      : actual meeting this but not `pass` => WARN (amber);
+#             worse than this => FAIL (red)
+# unit      : free-text unit for rendering
+# source    : measurement owner (engine / pipeline stage emitting the metric)
+# review    : cadence for regular reviews: ci | daily | weekly | monthly | nightly
+# gate      : true => participates in the automated CI/CD pass/fail gate
+#
+# Status model (single source of truth: kpi/tools/kpi_report.py):
+#   PASS | WARN | FAIL | MISSING(no measurement recorded yet)
+# =============================================================================
+meta:
+  version: 1
+  contract: "canonical MapFeature contract v1 (rust/crates/geo-core)"
+  categories: 20
+  domain_kpis: 92
+  infra_kpis_baseline: 8
+
+categories:
+
+  geospatial_core:            # KPI-001..KPI-010
+    - {id: KPI-001, name: Geometry Positional Accuracy RMSE,         direction: lower,  unit: m,        ideal: 0.30,  pass: 0.50,  warn: 1.00,  source: geometry-engine,     review: ci,      gate: true}
+    - {id: KPI-002, name: Horizontal Coordinate Error P95,           direction: lower,  unit: m,        ideal: 0.60,  pass: 1.00,  warn: 2.00,  source: geometry-engine,     review: ci,      gate: true}
+    - {id: KPI-003, name: Projection Round-Trip Error 4326-3857,     direction: lower,  unit: m,        ideal: 0.001, pass: 0.01,  warn: 0.05,  source: geo-geometry,        review: ci,      gate: true}
+    - {id: KPI-004, name: Tile Boundary Alignment Error,             direction: lower,  unit: px,       ideal: 0.00,  pass: 0.25,  warn: 0.50,  source: tile-engine,         review: weekly,  gate: false}
+    - {id: KPI-005, name: Elevation Vertical Accuracy RMSE,          direction: lower,  unit: m,        ideal: 0.50,  pass: 1.00,  warn: 2.00,  source: orbis-ingestion,     review: monthly, gate: false}
+    - {id: KPI-006, name: Curvature Representation Error,            direction: lower,  unit: pct,      ideal: 1.0,   pass: 2.0,   warn: 4.0,   source: geometry-engine,     review: weekly,  gate: false}
+    - {id: KPI-007, name: Address Point Placement Accuracy,          direction: higher, unit: pct,      ideal: 99.0,  pass: 97.0,  warn: 94.0,  source: conflation-engine,   review: monthly, gate: false}
+    - {id: KPI-008, name: POI Coordinate Precision,                  direction: higher, unit: pct,      ideal: 98.0,  pass: 95.0,  warn: 90.0,  source: conflation-engine,   review: monthly, gate: false}
+    - {id: KPI-009, name: Geometry Normalization Idempotency,        direction: higher, unit: pct,      ideal: 100.0, pass: 100.0, warn: 99.9,  source: validation-engine,   review: ci,      gate: true}
+    - {id: KPI-010, name: Simplification Deviation RDP Tolerance,    direction: lower,  unit: m,        ideal: 0.20,  pass: 0.50,  warn: 1.00,  source: geometry-engine,     review: weekly,  gate: false}
+
+  topology:                   # KPI-011..KPI-016
+    - {id: KPI-011, name: Segment-Connector Consistency Rate,        direction: higher, unit: pct,      ideal: 100.0, pass: 99.95, warn: 99.9,  source: topology-engine,     review: ci,      gate: true}
+    - {id: KPI-012, name: Orphan Connector Count,                    direction: lower,  unit: count,    ideal: 0,     pass: 0,     warn: 5,     source: topology-engine,     review: ci,      gate: true}
+    - {id: KPI-013, name: Dangling Reference Count,                  direction: lower,  unit: count,    ideal: 0,     pass: 0,     warn: 3,     source: topology-engine,     review: ci,      gate: true}
+    - {id: KPI-014, name: Intersection Topology Accuracy,            direction: higher, unit: pct,      ideal: 99.5,  pass: 99.0,  warn: 98.0,  source: topology-engine,     review: weekly,  gate: false}
+    - {id: KPI-015, name: Graph Connectivity Coverage,               direction: higher, unit: pct,      ideal: 100.0, pass: 99.9,  warn: 99.5,  source: routing-graph,       review: ci,      gate: true}
+    - {id: KPI-016, name: Impossible Turn Rate,                      direction: lower,  unit: per-10k,  ideal: 0,     pass: 0.5,   warn: 2.0,   source: topology-engine,     review: weekly,  gate: false}
+
+  lanes:                      # KPI-017..KPI-021
+    - {id: KPI-017, name: Lane Count Accuracy,                       direction: higher, unit: pct,      ideal: 99.0,  pass: 97.0,  warn: 94.0,  source: cv-lane-detection,   review: weekly,  gate: false}
+    - {id: KPI-018, name: Lane Divider Position Error P95,           direction: lower,  unit: m,        ideal: 0.30,  pass: 0.50,  warn: 0.80,  source: cv-lane-detection,   review: weekly,  gate: false}
+    - {id: KPI-019, name: Lane Continuity Through Intersections,     direction: higher, unit: pct,      ideal: 98.0,  pass: 95.0,  warn: 90.0,  source: topology-engine,     review: weekly,  gate: false}
+    - {id: KPI-020, name: Lane Turn-Ban Restriction Accuracy,        direction: higher, unit: pct,      ideal: 98.0,  pass: 95.0,  warn: 92.0,  source: conflation-engine,   review: monthly, gate: false}
+    - {id: KPI-021, name: Lane Width Estimation Error,               direction: lower,  unit: cm,       ideal: 10,    pass: 20,    warn: 35,    source: cv-lane-detection,   review: monthly, gate: false}
+
+  restrictions:               # KPI-022..KPI-025
+    - {id: KPI-022, name: Turn Restriction Precision,                direction: higher, unit: pct,      ideal: 98.0,  pass: 95.0,  warn: 92.0,  source: conflation-engine,   review: weekly,  gate: false}
+    - {id: KPI-023, name: Turn Restriction Recall,                   direction: higher, unit: pct,      ideal: 96.0,  pass: 92.0,  warn: 88.0,  source: cv-sign-detection,   review: weekly,  gate: false}
+    - {id: KPI-024, name: Access Property Attribute Accuracy,        direction: higher, unit: pct,      ideal: 98.0,  pass: 95.0,  warn: 90.0,  source: orbis-ingestion,     review: monthly, gate: false}
+    - {id: KPI-025, name: Destination Info Accuracy,                 direction: higher, unit: pct,      ideal: 97.0,  pass: 94.0,  warn: 90.0,  source: conflation-engine,   review: monthly, gate: false}
+
+  conflation:                 # KPI-026..KPI-031
+    - {id: KPI-026, name: Conflation Match Precision,                direction: higher, unit: pct,      ideal: 99.0,  pass: 97.0,  warn: 95.0,  source: conflation-engine,   review: ci,      gate: true}
+    - {id: KPI-027, name: Conflation Match Recall,                   direction: higher, unit: pct,      ideal: 97.0,  pass: 94.0,  warn: 90.0,  source: conflation-engine,   review: ci,      gate: true}
+    - {id: KPI-028, name: False Merge Rate,                          direction: lower,  unit: per-1k,   ideal: 0,     pass: 1.0,   warn: 3.0,   source: conflation-engine,   review: ci,      gate: true}
+    - {id: KPI-029, name: Missed Merge Rate,                         direction: lower,  unit: per-1k,   ideal: 1.0,   pass: 5.0,   warn: 10.0,  source: conflation-engine,   review: weekly,  gate: false}
+    - {id: KPI-030, name: Auto-Accept Decision Share,                direction: higher, unit: pct,      ideal: 90.0,  pass: 80.0,  warn: 70.0,  source: conflation-engine,   review: weekly,  gate: false}
+    - {id: KPI-031, name: Explanation Completeness Result Plus Why,  direction: higher, unit: pct,      ideal: 100.0, pass: 100.0, warn: 99.0,  source: conflation-engine,   review: ci,      gate: true}
+
+  change_detection:           # KPI-032..KPI-036
+    - {id: KPI-032, name: True Positive Change Detection Rate,       direction: higher, unit: pct,      ideal: 95.0,  pass: 90.0,  warn: 85.0,  source: cv-change-detection, review: weekly,  gate: false}
+    - {id: KPI-033, name: Change Detection False Alarm Rate,         direction: lower,  unit: per-1k-img, ideal: 1.0, pass: 5.0,   warn: 10.0,  source: cv-change-detection, review: weekly,  gate: false}
+    - {id: KPI-034, name: Change-to-Publication Latency P95,         direction: lower,  unit: h,        ideal: 24,    pass: 72,    warn: 168,   source: pipelines,           review: monthly, gate: false}
+    - {id: KPI-035, name: Revert Rate Wrongly Applied Changes,       direction: lower,  unit: per-1k,   ideal: 0,     pass: 2.0,   warn: 5.0,   source: quality-engine,      review: monthly, gate: false}
+    - {id: KPI-036, name: Temporal Reconciliation Accuracy,          direction: higher, unit: pct,      ideal: 98.0,  pass: 95.0,  warn: 92.0,  source: fusion-temporal,     review: monthly, gate: false}
+
+  data_quality:               # KPI-037..KPI-043
+    - {id: KPI-037, name: Schema Validation Pass Rate,               direction: higher, unit: pct,      ideal: 100.0, pass: 100.0, warn: 99.9,  source: validation-engine,   review: ci,      gate: true}
+    - {id: KPI-038, name: Provenance Completeness,                   direction: higher, unit: pct,      ideal: 100.0, pass: 99.9,  warn: 99.0,  source: provenance,          review: ci,      gate: true}
+    - {id: KPI-039, name: Duplicate Canonical Feature Rate,          direction: lower,  unit: per-10k,  ideal: 0,     pass: 1.0,   warn: 3.0,   source: topology-engine,     review: weekly,  gate: false}
+    - {id: KPI-040, name: Invalid Geometry Rate,                     direction: lower,  unit: per-10k,  ideal: 0,     pass: 0.5,   warn: 2.0,   source: validation-engine,   review: ci,      gate: true}
+    - {id: KPI-041, name: Null Required Attribute Rate,              direction: lower,  unit: per-10k,  ideal: 0,     pass: 2.0,   warn: 5.0,   source: ingestion,           review: weekly,  gate: false}
+    - {id: KPI-042, name: Mean Feature Confidence Score,             direction: higher, unit: pct,      ideal: 95.0,  pass: 90.0,  warn: 85.0,  source: validation-engine,   review: weekly,  gate: false}
+    - {id: KPI-043, name: License Metadata Tagging Coverage,         direction: higher, unit: pct,      ideal: 100.0, pass: 100.0, warn: 99.5,  source: ingestion,           review: monthly, gate: false}
+
+  computer_vision:            # KPI-044..KPI-051
+    - {id: KPI-044, name: Road Segmentation IoU,                     direction: higher, unit: pct,      ideal: 88.0,  pass: 82.0,  warn: 78.0,  source: cv-road-detection,   review: weekly,  gate: false}
+    - {id: KPI-045, name: Lane Marking F1,                           direction: higher, unit: pct,      ideal: 90.0,  pass: 85.0,  warn: 80.0,  source: cv-marking-detection,review: weekly,  gate: false}
+    - {id: KPI-046, name: Sign Detection mAP at 0.5 IoU,             direction: higher, unit: pct,      ideal: 85.0,  pass: 78.0,  warn: 72.0,  source: cv-sign-detection,   review: weekly,  gate: false}
+    - {id: KPI-047, name: Object Detection Recall,                   direction: higher, unit: pct,      ideal: 92.0,  pass: 88.0,  warn: 84.0,  source: cv-models,           review: weekly,  gate: false}
+    - {id: KPI-048, name: CV False Positive Rate,                    direction: lower,  unit: per-1k-frame, ideal: 2.0, pass: 8.0, warn: 15.0,  source: cv-evaluation,       review: weekly,  gate: false}
+    - {id: KPI-049, name: Confidence Calibration ECE,                direction: lower,  unit: pct,      ideal: 2.0,   pass: 5.0,   warn: 8.0,   source: cv-evaluation,       review: monthly, gate: false}
+    - {id: KPI-050, name: CV Inference Throughput,                   direction: higher, unit: fps,      ideal: 120,   pass: 80,    warn: 50,    source: inference-onnx,      review: ci,      gate: true}
+    - {id: KPI-051, name: Golden Set Regression Delta,               direction: lower,  unit: pct,      ideal: 0.0,   pass: 0.5,   warn: 1.5,   source: evaluation-golden,   review: ci,      gate: true}
+
+  routing:                    # KPI-052..KPI-056
+    - {id: KPI-052, name: Route Continuity Across Versions,          direction: higher, unit: pct,      ideal: 100.0, pass: 99.9,  warn: 99.5,  source: routing-graph,       review: ci,      gate: true}
+    - {id: KPI-053, name: Travel Time Estimation MAE,                direction: lower,  unit: pct,      ideal: 5.0,   pass: 8.0,   warn: 12.0,  source: routing-graph,       review: monthly, gate: false}
+    - {id: KPI-054, name: Path Optimality Ratio vs Ground Truth,     direction: higher, unit: pct,      ideal: 99.0,  pass: 97.0,  warn: 95.0,  source: routing-graph,       review: weekly,  gate: false}
+    - {id: KPI-055, name: Dead-End Anomaly Rate,                     direction: lower,  unit: per-10k,  ideal: 0,     pass: 1.0,   warn: 3.0,   source: topology-engine,     review: weekly,  gate: false}
+    - {id: KPI-056, name: Map Matching Trajectory Accuracy,          direction: higher, unit: pct,      ideal: 98.0,  pass: 95.0,  warn: 92.0,  source: map-matching,        review: weekly,  gate: false}
+
+  spatial_indexing:           # KPI-057..KPI-060
+    - {id: KPI-057, name: Spatial Query Correctness vs Brute Force,  direction: higher, unit: pct,      ideal: 100.0, pass: 100.0, warn: 99.99, source: spatial-index,       review: ci,      gate: true}
+    - {id: KPI-058, name: Index Build Throughput,                    direction: higher, unit: feats/s,  ideal: 5000000, pass: 2000000, warn: 1000000, source: spatial-index,   review: ci,      gate: true}
+    - {id: KPI-059, name: BBox Query Latency P99,                    direction: lower,  unit: ms,       ideal: 1.0,   pass: 5.0,   warn: 10.0,  source: spatial-index,       review: ci,      gate: true}
+    - {id: KPI-060, name: Nearest-Neighbour Exactness,               direction: higher, unit: pct,      ideal: 100.0, pass: 100.0, warn: 99.9,  source: spatial-index,       review: weekly,  gate: false}
+
+  regression:                 # KPI-061..KPI-064
+    - {id: KPI-061, name: Golden Dataset Regression Pass Rate,       direction: higher, unit: pct,      ideal: 100.0, pass: 99.5,  warn: 98.0,  source: quality-engine,      review: ci,      gate: true}
+    - {id: KPI-062, name: Version Diff Noise Rate,                   direction: lower,  unit: per-10k,  ideal: 0,     pass: 2.0,   warn: 5.0,   source: quality-engine,      review: weekly,  gate: false}
+    - {id: KPI-063, name: Flaky Test Rate,                           direction: lower,  unit: per-1k-runs, ideal: 0,  pass: 2.0,   warn: 5.0,   source: ci-harness,          review: weekly,  gate: false}
+    - {id: KPI-064, name: Deterministic Replay Consistency,          direction: higher, unit: pct,      ideal: 100.0, pass: 100.0, warn: 99.9,  source: ci-harness,          review: ci,      gate: true}
+
+  orbis_integration:          # KPI-065..KPI-068
+    - {id: KPI-065, name: Orbis API Availability,                    direction: higher, unit: pct,      ideal: 99.9,  pass: 99.5,  warn: 99.0,  source: orbis-client,        review: weekly,  gate: false}
+    - {id: KPI-066, name: Orbis Response Latency P95,                direction: lower,  unit: ms,       ideal: 150,   pass: 300,   warn: 500,   source: orbis-client,        review: ci,      gate: true}
+    - {id: KPI-067, name: Orbis Schema Compatibility Rate,           direction: higher, unit: pct,      ideal: 100.0, pass: 100.0, warn: 99.0,  source: ingestion,           review: ci,      gate: true}
+    - {id: KPI-068, name: Orbis Data Freshness Lag,                  direction: lower,  unit: h,        ideal: 1,     pass: 6,     warn: 24,    source: orbis-ingestion,     review: daily,   gate: false}
+
+  overture_integration:       # KPI-069..KPI-072
+    - {id: KPI-069, name: Overture Release Adoption Latency,         direction: lower,  unit: d,        ideal: 3,     pass: 7,     warn: 14,    source: ingestion,           review: monthly, gate: false}
+    - {id: KPI-070, name: Overture Segment Connector Mapping Fidelity,direction: higher,unit: pct,      ideal: 99.5,  pass: 98.0,  warn: 96.0,  source: normalization,       review: weekly,  gate: false}
+    - {id: KPI-071, name: Overture GeoParquet Read Success Rate,     direction: higher, unit: pct,      ideal: 100.0, pass: 99.9,  warn: 99.5,  source: data-format,         review: ci,      gate: true}
+    - {id: KPI-072, name: Overture Schema Pin Drift Detected,        direction: lower,  unit: count,    ideal: 0,     pass: 0,     warn: 1,     source: schemas,             review: nightly, gate: false}
+
+  osm_integration:            # KPI-073..KPI-075
+    - {id: KPI-073, name: OSM Extract Ingestion Success Rate,        direction: higher, unit: pct,      ideal: 100.0, pass: 99.5,  warn: 98.0,  source: ingestion,           review: weekly,  gate: false}
+    - {id: KPI-074, name: OSM Attribute Normalization Coverage,      direction: higher, unit: pct,      ideal: 98.0,  pass: 95.0,  warn: 90.0,  source: normalization,       review: monthly, gate: false}
+    - {id: KPI-075, name: OSM to Canonical Contract Violations,      direction: lower,  unit: per-10k,  ideal: 0,     pass: 1.0,   warn: 3.0,   source: normalization,       review: ci,      gate: true}
+
+  sensors_probe:              # KPI-076..KPI-079
+    - {id: KPI-076, name: Probe Data GPS Quality CEP50,              direction: lower,  unit: m,        ideal: 2.0,   pass: 4.0,   warn: 8.0,   source: ingestion,           review: monthly, gate: false}
+    - {id: KPI-077, name: Sensor Observation Admissibility Rate,     direction: higher, unit: pct,      ideal: 95.0,  pass: 90.0,  warn: 85.0,  source: fusion-confidence,   review: weekly,  gate: false}
+    - {id: KPI-078, name: Multi-Sensor Fusion Agreement,             direction: higher, unit: pct,      ideal: 90.0,  pass: 85.0,  warn: 80.0,  source: fusion-confidence,   review: monthly, gate: false}
+    - {id: KPI-079, name: Imagery Georeferencing Accuracy,           direction: higher, unit: pct,      ideal: 98.0,  pass: 95.0,  warn: 92.0,  source: cv-preprocessing,    review: monthly, gate: false}
+
+  rendering_tiles:            # KPI-080..KPI-083
+    - {id: KPI-080, name: Vector Tile Generation Throughput,         direction: higher, unit: tiles/s,  ideal: 2000,  pass: 1000,  warn: 500,   source: tile-engine,         review: ci,      gate: true}
+    - {id: KPI-081, name: Tile p95 Serve Latency,                    direction: lower,  unit: ms,       ideal: 50,    pass: 100,   warn: 200,   source: api-service,         review: ci,      gate: true}
+    - {id: KPI-082, name: Rendering Visual Regression Pass Rate,     direction: higher, unit: pct,      ideal: 100.0, pass: 99.0,  warn: 97.0,  source: web-maplibre,        review: weekly,  gate: false}
+    - {id: KPI-083, name: Tile Size Budget Compliance,               direction: higher, unit: pct,      ideal: 100.0, pass: 99.5,  warn: 98.0,  source: tile-engine,         review: weekly,  gate: false}
+
+  coverage:                   # KPI-084..KPI-087
+    - {id: KPI-084, name: Geographic Area Coverage,                  direction: higher, unit: pct,      ideal: 100.0, pass: 99.0,  warn: 97.0,  source: quality-engine,      review: monthly, gate: false}
+    - {id: KPI-085, name: Road Network Completeness vs Reference,    direction: higher, unit: pct,      ideal: 99.5,  pass: 98.0,  warn: 96.0,  source: conflation-engine,   review: weekly,  gate: false}
+    - {id: KPI-086, name: Urban Area Lane-Level Coverage,            direction: higher, unit: pct,      ideal: 90.0,  pass: 80.0,  warn: 70.0,  source: cv-lane-detection,   review: monthly, gate: false}
+    - {id: KPI-087, name: Rural Area Coverage Gap Count,             direction: lower,  unit: count,    ideal: 0,     pass: 10,    warn: 25,    source: quality-engine,      review: monthly, gate: false}
+
+  freshness:                  # KPI-088..KPI-090
+    - {id: KPI-088, name: Map Update Cycle Time P95,                 direction: lower,  unit: h,        ideal: 12,    pass: 24,    warn: 48,    source: pipelines,           review: weekly,  gate: false}
+    - {id: KPI-089, name: Feature Age Median,                        direction: lower,  unit: d,        ideal: 30,    pass: 90,    warn: 180,   source: provenance,          review: monthly, gate: false}
+    - {id: KPI-090, name: Stale Feature Rate Over 180 Days,          direction: lower,  unit: pct,      ideal: 1.0,   pass: 5.0,   warn: 10.0,  source: provenance,          review: monthly, gate: false}
+
+  reliability_security:       # KPI-091..KPI-092
+    - {id: KPI-091, name: Pipeline Crash-Free Rate,                  direction: higher, unit: pct,      ideal: 100.0, pass: 99.9,  warn: 99.5,  source: ci-harness,          review: weekly,  gate: false}
+    - {id: KPI-092, name: Secret Leak Incidents Past Push Protection,direction: lower,  unit: count,    ideal: 0,     pass: 0,     warn: 0,     source: security-ci,         review: ci,      gate: true}
+
+  # --------------------------------------------------------------------------
+  # Infrastructure / performance KPIs already enforced by the existing CI
+  # (Criterion benchmark budgets, pytest-benchmark, quality-gate exit codes).
+  # Integrated here so domain KPIs and infra KPIs sit on ONE scorecard.
+  # --------------------------------------------------------------------------
+  infra_performance:          # INFRA-001..INFRA-008
+    - {id: INFRA-001, name: Geometry Op Benchmark Regression,        direction: lower,  unit: pct,      ideal: 0.0,   pass: 5.0,   warn: 10.0,  source: criterion,           review: ci,      gate: true}
+    - {id: INFRA-002, name: Spatial Lookup Benchmark Regression,     direction: lower,  unit: pct,      ideal: 0.0,   pass: 5.0,   warn: 10.0,  source: criterion,           review: ci,      gate: true}
+    - {id: INFRA-003, name: Conflation Benchmark Regression,         direction: lower,  unit: pct,      ideal: 0.0,   pass: 5.0,   warn: 10.0,  source: criterion,           review: ci,      gate: true}
+    - {id: INFRA-004, name: PBF Parsing Benchmark Regression,        direction: lower,  unit: pct,      ideal: 0.0,   pass: 5.0,   warn: 10.0,  source: criterion,           review: ci,      gate: true}
+    - {id: INFRA-005, name: Tile Generation Benchmark Regression,    direction: lower,  unit: pct,      ideal: 0.0,   pass: 5.0,   warn: 10.0,  source: criterion,           review: ci,      gate: true}
+    - {id: INFRA-006, name: API p95 Latency Regression,              direction: lower,  unit: pct,      ideal: 0.0,   pass: 10.0,  warn: 15.0,  source: locust,              review: ci,      gate: true}
+    - {id: INFRA-007, name: Memory Footprint Regression,             direction: lower,  unit: pct,      ideal: 0.0,   pass: 10.0,  warn: 15.0,  source: memory-profiler,     review: ci,      gate: true}
+    - {id: INFRA-008, name: Sample Pipeline Wall Time Regression,    direction: lower,  unit: pct,      ideal: 0.0,   pass: 10.0,  warn: 15.0,  source: pytest-benchmark,    review: ci,      gate: true}

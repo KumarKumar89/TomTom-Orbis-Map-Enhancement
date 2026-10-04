@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="kpi-gate" tests="100" failures="3" errors="0" skipped="62">
+    <testcase classname="kpi.geospatial_core" name="KPI-001 Geometry Positional Accuracy RMSE"/>
+    <testcase classname="kpi.geospatial_core" name="KPI-002 Horizontal Coordinate Error P95"/>
+    <testcase classname="kpi.geospatial_core" name="KPI-003 Projection Round-Trip Error 4326-3857"/>
+    <testcase classname="kpi.geospatial_core" name="KPI-004 Tile Boundary Alignment Error"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.geospatial_core" name="KPI-005 Elevation Vertical Accuracy RMSE"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.geospatial_core" name="KPI-006 Curvature Representation Error"><skipped message="non-gated (MISSING)"/></testcase>
+    <testcase classname="kpi.geospatial_core" name="KPI-007 Address Point Placement Accuracy"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.geospatial_core" name="KPI-008 POI Coordinate Precision"><skipped message="non-gated (FAIL)"/></testcase>
+    <testcase classname="kpi.geospatial_core" name="KPI-009 Geometry Normalization Idempotency"/>
+    <testcase classname="kpi.geospatial_core" name="KPI-010 Simplification Deviation RDP Tolerance"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.topology" name="KPI-011 Segment-Connector Consistency Rate"/>
+    <testcase classname="kpi.topology" name="KPI-012 Orphan Connector Count"/>
+    <testcase classname="kpi.topology" name="KPI-013 Dangling Reference Count"/>
+    <testcase classname="kpi.topology" name="KPI-014 Intersection Topology Accuracy"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.topology" name="KPI-015 Graph Connectivity Coverage"/>
+    <testcase classname="kpi.topology" name="KPI-016 Impossible Turn Rate"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.lanes" name="KPI-017 Lane Count Accuracy"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.lanes" name="KPI-018 Lane Divider Position Error P95"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.lanes" name="KPI-019 Lane Continuity Through Intersections"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.lanes" name="KPI-020 Lane Turn-Ban Restriction Accuracy"><skipped message="non-gated (FAIL)"/></testcase>
+    <testcase classname="kpi.lanes" name="KPI-021 Lane Width Estimation Error"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.restrictions" name="KPI-022 Turn Restriction Precision"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.restrictions" name="KPI-023 Turn Restriction Recall"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.restrictions" name="KPI-024 Access Property Attribute Accuracy"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.restrictions" name="KPI-025 Destination Info Accuracy"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.conflation" name="KPI-026 Conflation Match Precision"/>
+    <testcase classname="kpi.conflation" name="KPI-027 Conflation Match Recall"/>
+    <testcase classname="kpi.conflation" name="KPI-028 False Merge Rate"><failure message="status FAIL">actual=4.6 warn=3.0 pass=1.0 direction=lower unit=per-1k</failure></testcase>
+    <testcase classname="kpi.conflation" name="KPI-029 Missed Merge Rate"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.conflation" name="KPI-030 Auto-Accept Decision Share"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.conflation" name="KPI-031 Explanation Completeness Result Plus Why"/>
+    <testcase classname="kpi.change_detection" name="KPI-032 True Positive Change Detection Rate"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.change_detection" name="KPI-033 Change Detection False Alarm Rate"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.change_detection" name="KPI-034 Change-to-Publication Latency P95"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.change_detection" name="KPI-035 Revert Rate Wrongly Applied Changes"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.change_detection" name="KPI-036 Temporal Reconciliation Accuracy"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.data_quality" name="KPI-037 Schema Validation Pass Rate"/>
+    <testcase classname="kpi.data_quality" name="KPI-038 Provenance Completeness"/>
+    <testcase classname="kpi.data_quality" name="KPI-039 Duplicate Canonical Feature Rate"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.data_quality" name="KPI-040 Invalid Geometry Rate"/>
+    <testcase classname="kpi.data_quality" name="KPI-041 Null Required Attribute Rate"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.data_quality" name="KPI-042 Mean Feature Confidence Score"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.data_quality" name="KPI-043 License Metadata Tagging Coverage"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.computer_vision" name="KPI-044 Road Segmentation IoU"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.computer_vision" name="KPI-045 Lane Marking F1"><skipped message="non-gated (FAIL)"/></testcase>
+    <testcase classname="kpi.computer_vision" name="KPI-046 Sign Detection mAP at 0.5 IoU"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.computer_vision" name="KPI-047 Object Detection Recall"><skipped message="non-gated (FAIL)"/></testcase>
+    <testcase classname="kpi.computer_vision" name="KPI-048 CV False Positive Rate"><skipped message="non-gated (FAIL)"/></testcase>
+    <testcase classname="kpi.computer_vision" name="KPI-049 Confidence Calibration ECE"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.computer_vision" name="KPI-050 CV Inference Throughput"/>
+    <testcase classname="kpi.computer_vision" name="KPI-051 Golden Set Regression Delta"/>
+    <testcase classname="kpi.routing" name="KPI-052 Route Continuity Across Versions"/>
+    <testcase classname="kpi.routing" name="KPI-053 Travel Time Estimation MAE"><skipped message="non-gated (FAIL)"/></testcase>
+    <testcase classname="kpi.routing" name="KPI-054 Path Optimality Ratio vs Ground Truth"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.routing" name="KPI-055 Dead-End Anomaly Rate"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.routing" name="KPI-056 Map Matching Trajectory Accuracy"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.spatial_indexing" name="KPI-057 Spatial Query Correctness vs Brute Force"/>
+    <testcase classname="kpi.spatial_indexing" name="KPI-058 Index Build Throughput"/>
+    <testcase classname="kpi.spatial_indexing" name="KPI-059 BBox Query Latency P99"/>
+    <testcase classname="kpi.spatial_indexing" name="KPI-060 Nearest-Neighbour Exactness"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.regression" name="KPI-061 Golden Dataset Regression Pass Rate"/>
+    <testcase classname="kpi.regression" name="KPI-062 Version Diff Noise Rate"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.regression" name="KPI-063 Flaky Test Rate"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.regression" name="KPI-064 Deterministic Replay Consistency"/>
+    <testcase classname="kpi.orbis_integration" name="KPI-065 Orbis API Availability"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.orbis_integration" name="KPI-066 Orbis Response Latency P95"><failure message="status FAIL">actual=640.0 warn=500.0 pass=300.0 direction=lower unit=ms</failure></testcase>
+    <testcase classname="kpi.orbis_integration" name="KPI-067 Orbis Schema Compatibility Rate"/>
+    <testcase classname="kpi.orbis_integration" name="KPI-068 Orbis Data Freshness Lag"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.overture_integration" name="KPI-069 Overture Release Adoption Latency"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.overture_integration" name="KPI-070 Overture Segment Connector Mapping Fidelity"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.overture_integration" name="KPI-071 Overture GeoParquet Read Success Rate"/>
+    <testcase classname="kpi.overture_integration" name="KPI-072 Overture Schema Pin Drift Detected"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.osm_integration" name="KPI-073 OSM Extract Ingestion Success Rate"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.osm_integration" name="KPI-074 OSM Attribute Normalization Coverage"><skipped message="non-gated (FAIL)"/></testcase>
+    <testcase classname="kpi.osm_integration" name="KPI-075 OSM to Canonical Contract Violations"/>
+    <testcase classname="kpi.sensors_probe" name="KPI-076 Probe Data GPS Quality CEP50"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.sensors_probe" name="KPI-077 Sensor Observation Admissibility Rate"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.sensors_probe" name="KPI-078 Multi-Sensor Fusion Agreement"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.sensors_probe" name="KPI-079 Imagery Georeferencing Accuracy"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.rendering_tiles" name="KPI-080 Vector Tile Generation Throughput"/>
+    <testcase classname="kpi.rendering_tiles" name="KPI-081 Tile p95 Serve Latency"><failure message="status FAIL">actual=265.0 warn=200.0 pass=100.0 direction=lower unit=ms</failure></testcase>
+    <testcase classname="kpi.rendering_tiles" name="KPI-082 Rendering Visual Regression Pass Rate"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.rendering_tiles" name="KPI-083 Tile Size Budget Compliance"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.coverage" name="KPI-084 Geographic Area Coverage"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.coverage" name="KPI-085 Road Network Completeness vs Reference"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.coverage" name="KPI-086 Urban Area Lane-Level Coverage"><skipped message="non-gated (FAIL)"/></testcase>
+    <testcase classname="kpi.coverage" name="KPI-087 Rural Area Coverage Gap Count"><skipped message="non-gated (WARN)"/></testcase>
+    <testcase classname="kpi.freshness" name="KPI-088 Map Update Cycle Time P95"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.freshness" name="KPI-089 Feature Age Median"><skipped message="non-gated (FAIL)"/></testcase>
+    <testcase classname="kpi.freshness" name="KPI-090 Stale Feature Rate Over 180 Days"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.reliability_security" name="KPI-091 Pipeline Crash-Free Rate"><skipped message="non-gated (PASS)"/></testcase>
+    <testcase classname="kpi.reliability_security" name="KPI-092 Secret Leak Incidents Past Push Protection"/>
+    <testcase classname="kpi.infra_performance" name="INFRA-001 Geometry Op Benchmark Regression"/>
+    <testcase classname="kpi.infra_performance" name="INFRA-002 Spatial Lookup Benchmark Regression"/>
+    <testcase classname="kpi.infra_performance" name="INFRA-003 Conflation Benchmark Regression"/>
+    <testcase classname="kpi.infra_performance" name="INFRA-004 PBF Parsing Benchmark Regression"/>
+    <testcase classname="kpi.infra_performance" name="INFRA-005 Tile Generation Benchmark Regression"/>
+    <testcase classname="kpi.infra_performance" name="INFRA-006 API p95 Latency Regression"/>
+    <testcase classname="kpi.infra_performance" name="INFRA-007 Memory Footprint Regression"/>
+    <testcase classname="kpi.infra_performance" name="INFRA-008 Sample Pipeline Wall Time Regression"/>
+</testsuite>

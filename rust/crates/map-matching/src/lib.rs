@@ -48,6 +48,7 @@ const MAX_DETOUR_FACTOR: f64 = 3.0;
 /// Observations further than this (dataset units) from any road are rejected.
 const MAX_SNAP_DISTANCE: f64 = 50.0;
 
+#[derive(Clone, Debug)]
 struct SegmentBBox(geo_core::Segment);
 impl Indexed for SegmentBBox {
     fn bbox(&self) -> geo_core::BoundingBox {
@@ -148,8 +149,8 @@ impl MapMatcher {
         from: &geo_core::FeatureId,
         to: &geo_core::FeatureId,
     ) -> GeoResult<Option<(f64, Vec<geo_core::FeatureId>)>> {
-        let fs = self.net.segments.get(from).ok_or(GeoError::Validation("unknown segment"))?;
-        let ts = self.net.segments.get(to).ok_or(GeoError::Validation("unknown segment"))?;
+        let fs = self.net.segments.get(from).ok_or(GeoError::Validation("unknown segment".to_string()))?;
+        let ts = self.net.segments.get(to).ok_or(GeoError::Validation("unknown segment".to_string()))?;
         // Attempt every connector pairing (two-way streets make all four plausible).
         let starts = [&fs.to_connector, &fs.from_connector];
         let ends = [&ts.from_connector, &ts.to_connector];

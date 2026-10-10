@@ -1,0 +1,33 @@
+version: 2
+updates:
+  # Rust workspace (Cargo.lock is committed -> security updates flow in).
+  - package-ecosystem: cargo
+    directory: /rust
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      rust-minor-patch:
+        update-types: [minor, patch]
+
+  # Python tooling.
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      python-minor-patch:
+        update-types: [minor, patch]
+
+  # The CI pipeline itself is a supply chain (README §16).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: docker
+    directory: /docker
+    schedule:
+      interval: weekly

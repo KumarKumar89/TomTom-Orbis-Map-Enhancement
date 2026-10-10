@@ -1,0 +1,39 @@
+# cargo-deny policy (README §12/§16): license + dependency hygiene gate run
+# by security.yml on every PR and nightly.
+
+[graph]
+all-features = true
+
+[advisories]
+db-urls = ["https://github.com/RustSec/advisory-db"]
+yanked = "deny"
+ignore = [
+    # RUSTSEC-XXXX: add entries here ONLY with a comment linking the issue,
+    # the affected crate, and the planned upgrade date.
+]
+
+[licenses]
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "Unicode-DFS-2016",
+    "MPL-2.0",          # copyleft but compatible for use as a dependency
+    "LicenseRef-RSA-MD", # icu/unicode data licenses seen in geo stacks
+]
+confidence-threshold = 0.93
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"        # require explicit version ranges in Cargo.toml
+highlight = true
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

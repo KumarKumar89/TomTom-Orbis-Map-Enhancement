@@ -1,0 +1,34 @@
+# Python tooling configuration for CI/CD (README §13). The Rust workspace is
+# defined separately in rust/Cargo.toml; maturin builds the py-bridge wheel.
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["rust/target", ".git"]
+
+[tool.ruff.lint]
+# E/W: style, F: pyflakes, I: import order, UP: modernize, B: bugbear, SIM.
+select = ["E", "F", "I", "UP", "B", "SIM"]
+# kpi/tools scripts intentionally use compact stdlib imports (`import a, b`).
+ignore = ["E401", "E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["B011"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["kpi/tools", "tests/python"]
+ignore_missing_imports = true
+# Start permissive; flip strict flags one at a time as the codebase hardens.
+check_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests/python"]
+addopts = "-ra --strict-markers"
+markers = [
+    "benchmark: performance regression tests (run in benchmark.yml nightly lane)",
+    "slow: expensive tests skipped from the PR gate",
+]
+junit_family = "xunit2"
+
+[tool.bandit]
+exclude_dirs = ["tests", "rust/target"]

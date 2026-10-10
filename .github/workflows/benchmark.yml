@@ -1,0 +1,80 @@
+# Performance CI (README §15): Criterion benchmarks as a merge gate, not a
+# dashboard wish. Nightly baseline comparisons; PR runs are informational so
+# every PR still gets numbers without blocking on runner noise.
+name: Benchmark
+
+on:
+  pull_request:
+    paths:
+      - 'rust/**'
+      - '.github/workflows/benchmark.yml'
+  schedule:
+    - cron: '43 2 * * *'   # nightly
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: benchmark-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  criterion:
+    name: Rust benchmarks (Criterion)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+      - name: Run benchmarks (machine-readable output)
+        working-directory: rust
+        run: |
+          cargo bench --workspace -- --save-baseline=ci-latest > bench-output.txt 2>&1
+          cat bench-output.txt
+      - name: Baseline regression gate (nightly only — >5% = fail, README §15)
+        if: github.event_name == 'schedule'
+        working-directory: rust
+        run: |
+          cargo install cargo-criterion --locked
+          cargo criterion --workspace --message-format=json > bench.json || true
+          python3 ../kpi/tools/criterion_gate.py bench.json --max-regression-pct 5
+      - name: Download previous baseline artifact
+        if: github.event_name == 'schedule'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: criterion-baseline
+          path: rust/criterion-baseline
+      - uses: actions/upload-artifact@v4
+        with:
+          name: criterion-results
+          path: |
+            rust/target/criterion/
+            rust/bench-output.txt
+          retention-days: 30
+
+  pytest-benchmark:
+    name: Python benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - name: pytest-benchmark
+        run: pytest tests/python -m benchmark --benchmark-json=bench-py.json -q || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pytest-benchmark-results
+          path: bench-py.json
+          retention-days: 30

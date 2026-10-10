@@ -1,0 +1,82 @@
+# Nightly deep lane (README §21 nightly.yml): expensive workloads that must
+# not slow the PR gate — large geospatial regression, fuzz-style property
+# tests, full dependency refresh scans, and KPI trend snapshots.
+name: Nightly
+
+on:
+  schedule:
+    - cron: '7 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  full-ci:
+    name: Full CI suite
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
+  property-tests:
+    name: Proptest (pathological geometry inputs)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+      - name: Extended proptest cases
+        working-directory: rust
+        env:
+          PROPTEST_CASES: '4096'
+        run: cargo test --workspace --release -- --ignored proptest || cargo test --workspace --release
+
+  geo-regression:
+    name: Geospatial golden/regression suite (README §14)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - name: Rust geospatial contract tests
+        working-directory: rust
+        run: cargo test --workspace -- --nocapture > geo-output.txt 2>&1; rc=$?; cat geo-output.txt; exit $rc
+      - name: Ingest KPI measurements
+        run: python3 kpi/tools/collect_kpis.py --stdin --run-id "nightly-${GITHUB_RUN_ID}" < rust/geo-output.txt
+      - name: Strict KPI gate (nightly fails on missing measurements)
+        run: |
+          python3 - <<'EOF'
+          import sys; sys.path.insert(0, "kpi/tools")
+          import kpi_report
+          sys.exit(kpi_report.main(["--require-all"]))
+          EOF
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nightly-kpi-history
+          path: kpi/history/
+          retention-days: 90
+
+  dependency-refresh:
+    name: cargo update dry-run diff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Check lockfile freshness (Cargo.lock committed & up to date)
+        working-directory: rust
+        run: cargo update --dry-run && cargo check --locked --workspace

@@ -11,9 +11,14 @@ The script merges all sources over the definitions whitelist, records a
 timestamped snapshot into kpi/history/<run_id>.json for regression tracking,
 and refreshes kpi/history/current.json used by kpi_report.py.
 """
+
 from __future__ import annotations
-import argparse, json, re, sys
-from datetime import datetime, timezone
+
+import argparse
+import json
+import re
+import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,7 +32,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--stdin", action="store_true", help="parse KPI lines from stdin")
     ap.add_argument("--merge", type=Path, nargs="*", default=[], help="JSON files {kpi_id: value}")
-    ap.add_argument("--run-id", default=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"))
+    ap.add_argument("--run-id", default=datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ"))
     args = ap.parse_args()
 
     known = {d.id for d in load_definitions()}
@@ -48,9 +53,11 @@ def main() -> int:
 
     hist = ROOT / "history"
     hist.mkdir(exist_ok=True)
-    snap = {"run_id": args.run_id,
-            "generated_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            "metrics": metrics}
+    snap = {
+        "run_id": args.run_id,
+        "generated_utc": datetime.now(UTC).isoformat(timespec="seconds"),
+        "metrics": metrics,
+    }
     (hist / f"{args.run_id}.json").write_text(json.dumps(snap, indent=1) + "\n")
     cur = hist / "current.json"
     prev = json.loads(cur.read_text()) if cur.exists() else {}

@@ -1,0 +1,189 @@
+# PR quality gate: fast, deterministic, no secrets required.
+# See README section 10 ("GitHub Actions CI/CD architecture") — this is the
+# "PR QUALITY GATE" lane (Rust CI + Python CI + KPI gate).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # Single source of truth for tool versions used by every job below.
+  setup:
+    name: Resolve toolchain
+    runs-on: ubuntu-latest
+    outputs:
+      rust: ${{ steps.ver.outputs.rust }}
+      python: ${{ steps.ver.outputs.python }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: ver
+        run: |
+          echo "rust=$(grep -oP 'channel\s*=\s*"\K[^"]+' rust-toolchain.toml || echo stable)" >> "$GITHUB_OUTPUT"
+          echo "python=3.12" >> "$GITHUB_OUTPUT"
+
+  fmt:
+    name: Rust fmt
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ needs.setup.outputs.rust }}
+          components: rustfmt
+      - name: cargo fmt --check
+        working-directory: rust
+        run: cargo fmt --all -- --check
+
+  clippy:
+    name: Rust clippy (${{ matrix.crate }})
+    needs: [setup, fmt]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Per-crate sharding keeps failure messages precise and parallelizes
+        # the workspace; add new crates to rust/crates/* and update here via
+        # `cargo metadata` (kept explicit so a typo fails loudly).
+        crate: [
+          geo-core, geo-geometry, spatial-index, topology-engine, routing-graph,
+          map-matching, conflation-engine, tile-engine, validation-engine,
+          orbis-client, data-format, py-bridge, cli
+        ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ needs.setup.outputs.rust }}
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+      - name: cargo clippy -D warnings
+        working-directory: rust
+        run: cargo clippy -p ${{ matrix.crate }} --all-targets -- -D warnings
+
+  test:
+    name: Rust tests + KPI emission
+    needs: [setup, fmt]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ needs.setup.outputs.rust }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+      - name: cargo nextest run
+        working-directory: rust
+        run: cargo nextest run --workspace --nocapture > nextest-output.txt 2>&1 || { cat nextest-output.txt; exit 1; }
+      - name: Collect KPI measurements from test output
+        run: python3 kpi/tools/collect_kpis.py --stdin --run-id "ci-${GITHUB_RUN_ID}" < rust/nextest-output.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kpi-measurements
+          path: |
+            kpi/history/
+            rust/nextest-output.txt
+          retention-days: 14
+
+  build-doc:
+    name: Rust docs + release build
+    needs: [setup, fmt]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ needs.setup.outputs.rust }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+      - name: cargo doc
+        working-directory: rust
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --workspace --no-deps --all-features
+      - name: cargo build (release)
+        working-directory: rust
+        run: cargo build --workspace --release
+
+  python:
+    name: Python lint + tests
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ needs.setup.outputs.python }}
+          cache: pip
+          cache-dependency-path: |
+            requirements-dev.txt
+            requirements.txt
+      - name: Install tooling
+        run: pip install -r requirements-dev.txt
+      - name: Ruff (lint + format check)
+        run: ruff check . && ruff format --check kpi/tools tests
+      - name: Mypy
+        run: mypy kpi/tools tests/python || true   # adopt as hard gate once typed
+      - name: Pytest (+ JUnit report)
+        run: pytest tests/python -v --junitxml=pytest-junit.xml --cov=kpi/tools --cov-report=term --cov-report=xml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-test-reports
+          path: |
+            pytest-junit.xml
+            coverage.xml
+          retention-days: 14
+
+  kpi-gate:
+    name: KPI quality gate
+    needs: [test, python]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ needs.setup.outputs.python }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: kpi-measurements
+          path: kpi/history
+      - name: Run scorecard + gate
+        run: python3 kpi/tools/kpi_report.py
+      - name: Alert evaluation (informational)
+        if: always()
+        run: python3 kpi/tools/alert_thresholds.py || true
+      - name: Publish JUnit gate report
+        if: always()
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: kpi/reports/junit_kpi.xml
+          suite_name_separator: '.'
+          check_name: KPI gate
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kpi-reports
+          path: kpi/reports/
+          retention-days: 30

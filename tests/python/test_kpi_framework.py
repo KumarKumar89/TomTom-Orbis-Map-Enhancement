@@ -7,6 +7,7 @@ Validates the invariants the whole scorecard depends on:
   * status evaluation PASS/WARN/FAIL/MISSING is direction-aware
   * gate exit codes behave for CI/CD automation
 """
+
 from __future__ import annotations
 
 import json
@@ -14,14 +15,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
 ROOT = Path(__file__).resolve().parents[2]
 KPI = ROOT / "kpi"
 sys.path.insert(0, str(KPI / "tools"))
 
 import kpi_report as kr  # noqa: E402
-
 
 defs = kr.load_definitions()  # module-level: definitions are pure data
 
@@ -44,10 +42,23 @@ def test_ids_contiguous_and_unique():
 
 def test_key_review_areas_present():
     need = {
-        "geospatial_core", "topology", "lanes", "conflation", "change_detection",
-        "data_quality", "computer_vision", "routing", "spatial_indexing",
-        "regression", "orbis_integration", "overture_integration", "osm_integration",
-        "sensors_probe", "rendering_tiles", "coverage", "freshness",
+        "geospatial_core",
+        "topology",
+        "lanes",
+        "conflation",
+        "change_detection",
+        "data_quality",
+        "computer_vision",
+        "routing",
+        "spatial_indexing",
+        "regression",
+        "orbis_integration",
+        "overture_integration",
+        "osm_integration",
+        "sensors_probe",
+        "rendering_tiles",
+        "coverage",
+        "freshness",
     }
     assert need <= {d.category for d in defs}
 
@@ -86,9 +97,17 @@ def test_report_end_to_end_gate_fails_on_breach(tmp_path):
     g = next(d for d in defs if d.gate and d.direction == "higher")
     bad.write_text(json.dumps({g.id: g.warn_th - 1.0}))
     rc = subprocess.run(
-        [sys.executable, str(KPI / "tools" / "kpi_report.py"),
-         "--current", str(bad), "--out-dir", str(tmp_path / "out")],
-        capture_output=True, text=True)
+        [
+            sys.executable,
+            str(KPI / "tools" / "kpi_report.py"),
+            "--current",
+            str(bad),
+            "--out-dir",
+            str(tmp_path / "out"),
+        ],
+        capture_output=True,
+        text=True,
+    )
     assert rc.returncode == 1, rc.stdout + rc.stderr
     junit = (tmp_path / "out" / "junit_kpi.xml").read_text()
     assert "<failure" in junit
@@ -104,9 +123,17 @@ def test_report_passes_when_all_gated_meet_warn(tmp_path):
         payload[d.id] = d.pass_th
     good.write_text(json.dumps(payload))
     rc = subprocess.run(
-        [sys.executable, str(KPI / "tools" / "kpi_report.py"),
-         "--current", str(good), "--out-dir", str(tmp_path / "out")],
-        capture_output=True, text=True)
+        [
+            sys.executable,
+            str(KPI / "tools" / "kpi_report.py"),
+            "--current",
+            str(good),
+            "--out-dir",
+            str(tmp_path / "out"),
+        ],
+        capture_output=True,
+        text=True,
+    )
     assert rc.returncode == 0, rc.stdout + rc.stderr
     md = (tmp_path / "out" / "kpi_report.md").read_text()
     assert "GATE PASSED" in md
@@ -117,9 +144,17 @@ def test_unknown_id_rejected(tmp_path):
     bad = tmp_path / "current.json"
     bad.write_text(json.dumps({"KPI-999": 1.0}))
     rc = subprocess.run(
-        [sys.executable, str(KPI / "tools" / "kpi_report.py"),
-         "--current", str(bad), "--out-dir", str(tmp_path / "out")],
-        capture_output=True, text=True)
+        [
+            sys.executable,
+            str(KPI / "tools" / "kpi_report.py"),
+            "--current",
+            str(bad),
+            "--out-dir",
+            str(tmp_path / "out"),
+        ],
+        capture_output=True,
+        text=True,
+    )
     assert rc.returncode == 2
 
 
@@ -129,14 +164,21 @@ def test_collector_ingests_stdin_lines(tmp_path, monkeypatch):
     src = (KPI / "tools" / "collect_kpis.py").read_text()
     # run collector with a sandboxed ROOT by patching module constant via env-free approach:
     mod = tmp_path / "collect_sandbox.py"
-    patched = src.replace('ROOT = Path(__file__).resolve().parents[1]',
-                          f'ROOT = Path(r"{KPI}")\nOUT_ROOT = Path(r"{hist.parent}")')
+    patched = src.replace(
+        "ROOT = Path(__file__).resolve().parents[1]",
+        f'ROOT = Path(r"{KPI}")\nOUT_ROOT = Path(r"{hist.parent}")',
+    )
     patched = patched.replace('hist = ROOT / "history"', 'hist = OUT_ROOT / "history"')
-    patched = patched.replace('from kpi_report import', f'sys.path.insert(0, r"{KPI / "tools"}"); from kpi_report import')
+    patched = patched.replace(
+        "from kpi_report import", f'sys.path.insert(0, r"{KPI / "tools"}"); from kpi_report import'
+    )
     mod.write_text(patched)
-    rc = subprocess.run([sys.executable, str(mod), "--stdin", "--run-id", "sbx"],
-                        input="noise\nKPI KPI-057 100.0\nKPI INFRA-001 1.5\n",
-                        capture_output=True, text=True)
+    rc = subprocess.run(
+        [sys.executable, str(mod), "--stdin", "--run-id", "sbx"],
+        input="noise\nKPI KPI-057 100.0\nKPI INFRA-001 1.5\n",
+        capture_output=True,
+        text=True,
+    )
     assert rc.returncode == 0, rc.stderr
     snap = json.loads((hist / "sbx.json").read_text())
     assert snap["metrics"] == {"KPI-057": 100.0, "INFRA-001": 1.5}

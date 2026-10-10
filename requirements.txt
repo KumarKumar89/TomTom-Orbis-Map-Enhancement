@@ -1,0 +1,4 @@
+# Runtime dependencies for the KPI CI/CD tooling (kpi/tools/*.py).
+# Pinned to compatible-release ranges; Dependabot keeps them fresh and
+# pip-audit (security.yml) scans them on every PR.
+PyYAML>=6.0,<7
